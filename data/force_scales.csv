@@ -1,0 +1,11 @@
+Structure,log10_L,Domain,Notes
+Planck_length,-34.79,quantum,Planck length (~1.616e-35 m)
+Strong_nuclear,-15.00,quantum,Range of strong nuclear interactions (~1e-15 m)
+Weak_interaction,-18.00,quantum,Weak force effective range (order estimate)
+Bohr_radius,-10.28,atomic,Hydrogen Bohr radius (~5.29e-11 m)
+Van_der_Waals,-9.00,molecular,Typical dispersion interaction length (order estimate)
+Protein_size,-7.00,biochemical,Characteristic protein size (~10 nm)
+Cell_organelle,-6.00,biological,Small organelle / subcellular (~1 µm)
+Dust_grain,-4.00,meso,dust grain size / cm–mm crossover estimate
+Planetary_surface,6.00,planetary,Human/planetary scale (for context)
+Galaxy_scale,21.00,astronomical,Characteristic galaxy scale (order of magnitude)
