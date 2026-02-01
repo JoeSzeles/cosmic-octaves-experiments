@@ -1,0 +1,2 @@
+d:\python codes\cosmic-octaves-analysis-main\code\delta_scan.py: []
+d:\python codes\cosmic-octaves-analysis-main\code\permutation_test.py: []
