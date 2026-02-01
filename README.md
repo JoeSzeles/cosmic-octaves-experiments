@@ -35,9 +35,11 @@ We document a statistically significant pattern where canonical organizational s
 ## Repository Contents
 
 - 📄 **paper/**: Full manuscript (PDF)
-- 📊 **data/**: Complete datasets (15 structures, 7 octave pairs)
-- 💻 **code/**: Python scripts for permutation test and Δ-scan
-- 📈 **figures/**: High-resolution visualizations (5 figures)
+- 📊 **data/**: Complete datasets (15 structures, 7 octave pairs, force scales)
+- 💻 **code/**: Core permutation test and Δ-scan scripts
+- 🔬 **src/**: Modular analysis framework (octave_analysis, force_clustering, RG flow)
+- 📈 **figures/**: High-resolution visualizations (original + new analysis figures)
+- 📋 **docs/**: Testing framework and extension documentation
 
 ---
 
@@ -45,17 +47,23 @@ We document a statistically significant pattern where canonical organizational s
 
 ```bash
 # Clone repository
-git clone https://github.com/Chris-L78/cosmic-octaves-analysis.git
-cd cosmic-octaves-analysis
+git clone https://github.com/JoeSzeles/cosmic-octaves-experiments.git
+cd cosmic-octaves-experiments
 
 # Install dependencies
 pip install -r code/requirements.txt
 
-# Run permutation test
+# Run core permutation test
 python code/permutation_test.py
 
-# Run look-elsewhere scan
+# Run look-elsewhere scan (delta-scan)
 python code/delta_scan.py
+
+# Run expanded force clustering test (includes force scales)
+python src/force_clustering_test.py --smoke
+
+# Run RG flow prototype (FFT analysis)
+python src/rg_flow_analysis.py
 ```
 
 ---
@@ -111,7 +119,139 @@ Each "rung" is paired with a structure ~10²⁴ meters larger:
 ### Deviation Summary
 ![Deviation Summary](figures/3_deviation_summary.png)
 
-*See [figures/](figures/) for all 5 visualizations with detailed explanations.*
+### Force Clustering Test Results
+![Force Clustering](figures/force_clustering_hist.png)
+
+### RG Flow Analysis: Coupling Constant vs. Log-Scale
+![RG Flow g(t)](figures/rg_flow_g_t.png)
+
+### RG Flow FFT: Dominant Periodicity Detection
+![RG Flow FFT](figures/rg_flow_fft.png)
+
+*See [figures/](figures/) for all visualizations with detailed explanations.*
+
+---
+
+## New: Modular Analysis Framework & Extensions
+
+### Core Module: `src/octave_analysis.py`
+
+Provides reusable utilities for permutation testing:
+
+```python
+from src.octave_analysis import (
+    get_deviations,           # Compute deviation from target delta for each pair
+    count_strong_matches,     # Count pairs with deviation <= threshold
+    max_strong_matches_in_scan,  # Find max strong matches across delta range
+    DEFAULT_LOGS,            # 15 canonical log10(L) values
+    DEFAULT_PAIRS            # 7 canonical (small, large) index pairs
+)
+```
+
+**Example usage:**
+```python
+import numpy as np
+from src.octave_analysis import get_deviations, count_strong_matches
+
+logs = np.array([...your data...])
+devs = get_deviations(logs, delta=24.0)
+strong_count = count_strong_matches(logs, delta=24.0, threshold=0.2)
+```
+
+---
+
+### Test 1: Force Clustering (`src/force_clustering_test.py`)
+
+Expands the permutation test by adding force/interaction scales (Planck length, nuclear range, atomic, etc.) to the base dataset and re-running the analysis.
+
+**Features:**
+- Loads `data/force_scales.csv` and concatenates with base logs
+- Optional `--append-dmde` flag to include speculative dark matter/dark energy scales
+- `--smoke` flag for quick testing (2000 trials instead of 200k)
+- Outputs histogram to `figures/force_clustering_hist.png`
+
+**Usage:**
+```bash
+# Quick test with 2000 trials
+python src/force_clustering_test.py --smoke
+
+# Full test with 200,000 trials
+python src/force_clustering_test.py --n_trials 200000
+
+# Include DM/DE placeholder scales
+python src/force_clustering_test.py --append-dmde --smoke
+
+# Custom delta and threshold
+python src/force_clustering_test.py --delta 24.5 --threshold 0.25 --smoke
+```
+
+**Sample output:**
+```
+Loaded 10 force scales from force_scales.csv
+Observed strong matches: 4
+Empirical p-value: 0.2076 (20.76%)
+Conservative upper bound: 0.2076 (20.76%)
+Histogram saved to figures/force_clustering_hist.png
+```
+
+---
+
+### Test 2: RG Flow Periodicity (`src/rg_flow_analysis.py`)
+
+Prototype renormalization-group (RG) flow analysis. Integrates a toy beta-function with periodic perturbations and performs FFT to detect dominant oscillation periods.
+
+**Features:**
+- Numerically integrates ODE: `dg/dt = -decay * g + pert_amp * sin(2π t / period)`
+- Computes FFT on coupling constant g(t) over log-scale t
+- Reports dominant period (in log10 units) and saves two plots:
+  - `rg_flow_g_t.png`: coupling constant vs. log-scale
+  - `rg_flow_fft.png`: FFT magnitude spectrum
+
+**Usage:**
+```bash
+# Run with default parameters (period=24.0, decay=0.05, amp=0.5)
+python src/rg_flow_analysis.py
+
+# Custom integration range and parameters
+python src/rg_flow_analysis.py --t-min -40 --t-max 30 --period 24.5 --pert-amp 0.7
+
+# Window the FFT for cleaner analysis
+python src/rg_flow_analysis.py --window
+```
+
+**Sample output:**
+```
+Dominant period (log10 units): 20.67
+Saved plots to: figures/rg_flow_g_t.png figures/rg_flow_fft.png
+```
+
+---
+
+### Data: Force Scales (`data/force_scales.csv`)
+
+Baseline set of characteristic force/interaction scales to extend permutation tests:
+
+| Structure | log10_L | Domain | Notes |
+|-----------|---------|--------|-------|
+| Planck_length | -34.79 | quantum | Planck length |
+| Strong_nuclear | -15.00 | quantum | Strong force range |
+| Weak_interaction | -18.00 | quantum | Weak force effective range |
+| Bohr_radius | -10.28 | atomic | Hydrogen Bohr radius |
+| Van_der_Waals | -9.00 | molecular | Dispersion interaction length |
+| Protein_size | -7.00 | biochemical | Characteristic protein size |
+| Dust_grain | -4.00 | meso | Dust/cm-mm crossover |
+| Galaxy_scale | 21.00 | astronomical | Characteristic galaxy scale |
+
+---
+
+### Documentation: Testing Framework (`docs/testing_framework.md`)
+
+Complete specification of three proposed tests:
+1. **Force Range Clustering** — permutation test with extended scales
+2. **Renormalization Group Flow & Periodicity** — FFT analysis of toy beta-functions
+3. **Toy Universe Simulation with Fractal Force** (planned) — N-body sim with log-periodic force perturbation
+
+See [docs/testing_framework.md](docs/testing_framework.md) for full mathematical setup, rationale, and extension ideas.
 
 ---
 
